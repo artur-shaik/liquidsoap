@@ -26,6 +26,7 @@
   liquidsoap-lang
   liquidsoap-lang.console
   menhirLib
+  moonpool
   camomile.lib
   curl
   cry
