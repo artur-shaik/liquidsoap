@@ -53,7 +53,7 @@ type source_t = [ `Fallible | `Infallible ]
 exception Unavailable
 
 type streaming_state =
-  [ `Unavailable | `Ready of Clock_ready.t | `Done of Frame.t ]
+  [ `Unavailable | `Ready of Frame.t Clock_ready.t | `Done of Frame.t ]
 
 (** {1 Proto clocks}
 
@@ -579,15 +579,12 @@ class virtual operator ?pos ?(name = "src") sources =
                        else cache
                      in
                      let buf_pos = Frame.position buf in
-                     let buf =
-                       if size < buf_pos then (
-                         _cache <-
-                           Some
-                             (Frame.chunk ~start:size ~stop:(buf_pos - size) buf);
-                         Frame.slice buf size)
-                       else buf
-                     in
-                     Atomic.set streaming_state (`Done buf))))
+                     if size < buf_pos then (
+                       _cache <-
+                         Some
+                           (Frame.chunk ~start:size ~stop:(buf_pos - size) buf);
+                       Frame.slice buf size)
+                     else buf)))
           else Atomic.set streaming_state `Unavailable);
 
       self#on_after_output (fun () ->
@@ -607,7 +604,7 @@ class virtual operator ?pos ?(name = "src") sources =
             log#critical "source called while not ready!";
             raise Unavailable
         | `Ready fn ->
-            Clock_ready.process fn;
+            Atomic.set streaming_state (`Done (Clock_ready.process fn));
             self#get_partial_frame cb
         | `Done data ->
             let data = cb data in
