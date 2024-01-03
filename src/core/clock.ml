@@ -313,8 +313,8 @@ module MkClock (Time : Liq_time.T) = struct
         on_before_output <- [];
         List.iter (fun fn -> fn ()) todo;
         let futures =
-          List.fold_left
-            (fun futures s ->
+          List.map
+            (fun s ->
               let exec () =
                 try
                   s#output;
@@ -332,8 +332,8 @@ module MkClock (Time : Liq_time.T) = struct
                         on_error exn bt;
                         None)
               in
-              Future.spawn ~on:Clock_ready.clock_pool exec :: futures)
-            [] active
+              Future.spawn ~on:Clock_ready.clock_pool exec)
+            active
         in
         let error =
           List.filter_map
