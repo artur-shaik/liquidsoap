@@ -24,7 +24,6 @@ type clock_variable = Source.clock_variable
 type source = Source.source
 type active_source = Source.active_source
 
-module Pool = Moonpool.Ws_pool
 module Future = Moonpool.Fut
 include Source.Clock_variables
 
@@ -133,8 +132,6 @@ let sync_descr = function
   | `Auto -> "auto-sync"
   | `CPU -> "CPU sync"
   | `None -> "no sync"
-
-let clock_pool = Pool.create ()
 
 module MkClock (Time : Liq_time.T) = struct
   open Time
@@ -335,7 +332,7 @@ module MkClock (Time : Liq_time.T) = struct
                         on_error exn bt;
                         None)
               in
-              Future.spawn ~on:clock_pool exec :: futures)
+              Future.spawn ~on:Clock_ready.clock_pool exec :: futures)
             [] active
         in
         let error =
