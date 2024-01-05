@@ -42,6 +42,7 @@ let conf_export_metadata =
       [
         "artist";
         "title";
+        "TITLE";
         "album";
         "genre";
         "date";
